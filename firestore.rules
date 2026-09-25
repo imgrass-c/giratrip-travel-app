@@ -1,0 +1,12 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 允許旅伴共用讀寫行程帳目
+    match /trips/{tripId} {
+      allow read, write: if true;
+      match /expenses/{expenseId} {
+        allow read, write: if true;
+      }
+    }
+  }
+}

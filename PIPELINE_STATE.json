@@ -1,0 +1,56 @@
+{
+  "project_meta": {
+    "app_name": "GiraTrip (記啦旅)",
+    "app_slogan": "長頸鹿全覽行程，花費輕鬆記啦！",
+    "naming_rationale": "結合長頸鹿英文 Giraffe（象徵視野高瞻遠矚、把長長行程與帳單一覽無遺）與中文諧音『記啦』+ Trip",
+    "color_palette": {
+      "canvas_bg": "#E6E2B5",
+      "text_primary": "#6E5454",
+      "text_muted": "#967E7E",
+      "surface_card": "#F2EED9",
+      "surface_border": "#D5CEBA",
+      "primary_accent": "#526655",
+      "secondary_accent": "#8A6B58"
+    },
+    "icon_library": "lucide-react",
+    "no_emoji": true
+  },
+  "infra_stack": {
+    "type": "Hybrid Cloud & Local-First Web App",
+    "dynamic_database": "Google Firebase Firestore (高頻動態金流/記帳即時監聽，開啟 App 秒同步)",
+    "static_sheet_sync": "Google Sheets (靜態行程景點、Google Maps 連結、IG 影片連結，支援下載本機離線與一鍵手動同步)",
+    "document_storage": "Google Drive (行程門票/住宿憑證 PDF 外部安全檢視連結)",
+    "local_cache": "IndexedDB / LocalStorage (離線優先，快取行程與靜態連結，弱網環境秒開)",
+    "hosting": "GitHub + Cloudflare Pages (100% Free，全域邊緣節點加速，月維護費用 0 元)"
+  },
+  "spec_contract": {
+    "one_line_value": "專為多旅程設計的長頸鹿極簡 Web App：動態金流秒級 Firebase 同步、靜態行程 Sheets 整合、景點 IG 與 Maps 及 PDF 憑證掛載、多國菜單與收據 OCR 智慧翻譯。",
+    "multi_trip_system": {
+      "supported": true,
+      "trip_attributes": ["id", "title", "destination", "start_date", "end_date", "base_currency", "members", "created_at"],
+      "capabilities": ["自由新建多個旅程", "旅程快速切換", "歷史旅程封存與瀏覽", "個別旅程獨立帳本與行程"]
+    },
+    "mvp_scope": [
+      "🌍 多旅程管理系統 (Multi-Trip Management)：支援自由新建新旅行、設定旅程日期/主要幣別/成員名單，隨時切換不同旅程，資料互不干擾",
+      "📅 豐富行程時間軸 (Rich Itinerary)：多天數分頁，支援景點、餐飲、交通節點；每筆節點支援 Google Maps 導航連結、Instagram 影片 Reels 連結、Google Drive PDF 門票憑證連結",
+      "📊 雙軌資料同步 (Firebase + Google Sheets)：動態花費寫入 Firebase 達成多裝置即時同步；靜態行程支援從 Google Sheets 下載快取至本機端離線使用，支援一鍵手動同步更新",
+      "💰 多幣別記帳與彈性分帳：預設 TWD/JPY/KRW/USD/EUR/THB 自訂匯率；混合式均攤與自訂勾選誰分攤；內建最小轉帳次數演算法 (Min Cash Flow) 算出最少還款筆數",
+      "📸 雙模 OCR 智慧掃描翻譯 (菜單＋收據)：支援海外（日/韓/英）紙本收據 OCR 萃取品項與金額，以及餐廳外文菜單即時辨識並翻譯為繁體中文，支援一鍵轉入記帳",
+      "🎨 用戶指定暖調視覺規範：畫布基底 #E6E2B5、內文字體 #6E5454、卡片 #F2EED9、嚴格無 Emoji 原則、純 1.5px Lucide 向量細線圖標"
+    ],
+    "out_of_scope": [
+      "LINE 機器人/LIFF 整合（依用戶指示本階段完全排除，專注純 Web App 體驗）",
+      "複雜金流直接扣款/銀行轉帳 API（維持產出轉帳代碼與帳號備忘）",
+      "付費機票自動郵件爬蟲（維持彈性自訂節點與 PDF 憑證連結掛載）"
+    ]
+  },
+  "gate_status": {
+    "gate_0_passed": true,
+    "gate_1_approved": true,
+    "secrets_precheck_passed": true,
+    "self_healing_iterations": 1,
+    "security_green": true,
+    "qa_green": true,
+    "gate_2_approved": false
+  }
+}
