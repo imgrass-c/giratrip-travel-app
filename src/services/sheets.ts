@@ -114,19 +114,37 @@ export const fetchGoogleSheetBundle = async (sheetOrGasUrl: string, tripId: stri
     throw new Error('請輸入以 https:// 開頭的合法網址');
   }
 
+  // Check if user accidentally pasted regular Google Sheet edit URL
+  if (cleanUrl.includes('docs.google.com/spreadsheets')) {
+    throw new Error('您輸入的是 Google 試算表的編輯網址。請使用 Apps Script 部署生成的「網頁應用程式網址」（格式為 https://script.google.com/macros/s/.../exec）。請至試算表頂端選單點選「擴充功能 > Apps Script ➔ 部署 ➔ 管理部署作業」複製網址。');
+  }
+
   // 1. Google Apps Script Web App (JSON API)
   if (cleanUrl.includes('script.google.com')) {
     const fetchUrl = cleanUrl.includes('?') 
       ? `${cleanUrl}&action=getItinerary` 
       : `${cleanUrl}?action=getItinerary`;
     
-    const response = await fetch(fetchUrl, { redirect: 'follow' });
+    let response: Response;
+    try {
+      response = await fetch(fetchUrl, { redirect: 'follow' });
+    } catch (err: any) {
+      throw new Error('無法連線至 Google Apps Script（連線中斷或受跨域限制）。請至 Apps Script 點選「部署 ➔ 管理部署作業 ➔ 編輯」，確認「誰可以存取 (Who has access)」是否設定為「所有人 (Anyone)」！');
+    }
+
     if (!response.ok) {
       throw new Error(`Google Apps Script 連線失敗，HTTP 狀態碼: ${response.status}`);
     }
-    const json = await response.json();
+    
+    let json: any;
+    try {
+      json = await response.json();
+    } catch (e) {
+      throw new Error('Google Apps Script 未回傳有效 JSON。請確認 Apps Script 部署設定中「執行身分」為「我 (Me)」，「誰可以存取」為「所有人 (Anyone)」。');
+    }
+
     if (json.status !== 'success' || !Array.isArray(json.items)) {
-      throw new Error(json.message || 'Google Apps Script 回傳資料格式不符合規範');
+      throw new Error(json.message || 'Google Apps Script 回傳資料格式不符合規範，請確認是否已在試算表執行 setupGiraTripSheets');
     }
     
     const items: ItineraryItem[] = json.items.map((it: any, idx: number) => ({

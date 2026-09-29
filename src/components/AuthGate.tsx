@@ -34,10 +34,16 @@ export const AuthGate: React.FC<AuthGateProps> = ({
     if (!currentUser) return false;
     if (isDemoBypass) return true;
 
+    // 1. If the trip has NOT yet been linked to a custom Google Sheet (sheetCsvUrl is empty or sample trip),
+    // allow the authenticated Google user to enter so they can set up and link their Google Sheet!
+    if (!activeTrip?.sheetCsvUrl || activeTrip.id === 'trip_tokyo_spring_2026') {
+      return true;
+    }
+
     const userEmail = (currentUser.email || '').trim().toLowerCase();
     const userName = (currentUser.displayName || '').trim().toLowerCase();
 
-    // If trip has members, check matching email or name
+    // 2. If trip has members, check matching email or name
     if (activeTrip && activeTrip.members && activeTrip.members.length > 0) {
       const match = activeTrip.members.some((m) => {
         const memberEmail = (m.email || '').trim().toLowerCase();
