@@ -47,8 +47,4 @@ jobs:
         if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
         continue-on-error: true
         run: |
-          echo "### 🌐 Cloudflare Pages 部署詳細紀錄" >> $GITHUB_STEP_SUMMARY
-          echo '```text' >> $GITHUB_STEP_SUMMARY
-          npx wrangler pages project create giratrip-travel-app --production-branch=main 2>&1 | tee -a $GITHUB_STEP_SUMMARY || true
-          npx wrangler pages deploy dist --project-name=giratrip-travel-app --branch=main 2>&1 | tee -a $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          npx --yes wrangler pages deploy dist --project-name=giratrip-travel-app --branch=main
