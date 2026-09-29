@@ -674,6 +674,11 @@ export const ItineraryTab: React.FC<ItineraryTabProps> = ({
                 onChange={(e) => setSheetUrlInput(e.target.value)}
                 className="w-full min-h-[44px] px-3.5 py-2 rounded-2xl bg-canvas border border-surface-border text-ink placeholder:text-ink-light font-mono text-[11px] focus:outline-none focus:border-primary shadow-tactile-sm"
               />
+              {sheetUrlInput.includes('docs.google.com/spreadsheets') && !sheetUrlInput.includes('pub?output=csv') && (
+                <p className="text-[11px] text-terracotta mt-1.5 leading-snug font-medium bg-terracotta/10 p-2 rounded-xl border border-terracotta/20">
+                  ⚠️ 您貼上的是試算表的「編輯頁面網址」，瀏覽器無法直接讀取。若使用 GAS，請至試算表的「擴充功能 &gt; Apps Script ➔ 部署 ➔ 管理部署作業」複製網頁應用程式網址（以 /exec 結尾）；若使用 CSV，請至「檔案 &gt; 共用 &gt; 發布到網路」複製 CSV 連結。
+                </p>
+              )}
             </div>
 
             <div className="pt-2 flex justify-end gap-2 border-t border-surface-border">

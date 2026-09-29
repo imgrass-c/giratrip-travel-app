@@ -238,20 +238,25 @@ export const TripModal: React.FC<TripModalProps> = ({
             </div>
           </div>
 
-          {/* Optional Google Sheet CSV Url */}
+          {/* Optional Google Sheet / GAS Url */}
           <div>
             <label className="block text-xs font-semibold text-ink mb-1">
-              Google Sheets 靜態行程 CSV 連結 (可選)
+              Google Apps Script 網頁應用程式 或 試算表 CSV 連結 (可選)
             </label>
             <input
               type="url"
-              placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv"
+              placeholder="https://script.google.com/macros/s/.../exec"
               value={sheetCsvUrl}
               onChange={(e) => setSheetCsvUrl(e.target.value)}
               className="w-full px-3 py-1.5 rounded-xl bg-canvas border border-surface-border text-xs text-ink placeholder:text-ink-light focus:outline-none focus:border-primary font-mono text-[11px]"
             />
-            <p className="text-[10px] text-ink-muted mt-1">
-              可填寫已發布為 CSV 的 Google 試算表連結，後續可在行程頁一鍵同步景點、地圖與 IG 影片。
+            {sheetCsvUrl.includes('docs.google.com/spreadsheets') && !sheetCsvUrl.includes('pub?output=csv') && (
+              <p className="text-[10px] text-terracotta mt-1 leading-tight font-medium">
+                ⚠️ 注意：此網址為試算表編輯網址，瀏覽器無法直接讀取。請前往 Apps Script 部署取得「網頁應用程式網址 (https://script.google.com/macros/s/.../exec)」，或使用「檔案 &gt; 共用 &gt; 發布到網路」的 CSV 連結。
+              </p>
+            )}
+            <p className="text-[10px] text-ink-muted mt-1 leading-relaxed">
+              推薦填寫 Apps Script 部署出來的 Web App 網址（以 /exec 結尾），可在行程頁一鍵雙向同步成員白名單、景點、地圖與 IG 影片。
             </p>
           </div>
 
