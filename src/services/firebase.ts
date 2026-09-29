@@ -18,7 +18,7 @@ import {
   query,
   orderBy
 } from 'firebase/firestore';
-import type { Expense, Trip } from '../types';
+import type { Expense, Trip, ItineraryItem } from '../types';
 
 export interface FirebaseCustomConfig {
   apiKey: string;
@@ -247,3 +247,81 @@ export const syncTripToRemote = async (trip: Trip): Promise<boolean> => {
     return false;
   }
 };
+
+// Realtime subscription for all Trips in Firestore
+export const subscribeTrips = (
+  onData: (trips: Trip[]) => void,
+  onError?: (err: Error) => void
+): (() => void) => {
+  if (!isFirebaseReady() || !firestoreDb) {
+    return () => {};
+  }
+  try {
+    const tripsCol = collection(firestoreDb, 'trips');
+    const q = query(tripsCol, orderBy('updatedAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const remoteTrips: Trip[] = [];
+      snapshot.forEach((docSnap) => {
+        remoteTrips.push({ id: docSnap.id, ...docSnap.data() } as Trip);
+      });
+      if (remoteTrips.length > 0) {
+        onData(remoteTrips);
+      }
+    }, (err) => {
+      console.warn('Firestore trips subscription warning:', err);
+      if (onError) onError(err);
+    });
+    return unsubscribe;
+  } catch (err: any) {
+    console.warn('subscribeTrips setup error:', err);
+    if (onError) onError(err);
+    return () => {};
+  }
+};
+
+// Realtime subscription for Itinerary items of a trip
+export const subscribeTripItinerary = (
+  tripId: string,
+  onData: (items: ItineraryItem[]) => void,
+  onError?: (err: Error) => void
+): (() => void) => {
+  if (!isFirebaseReady() || !firestoreDb) {
+    return () => {};
+  }
+  try {
+    const docRef = doc(firestoreDb, 'trips', tripId, 'itinerary_data', 'items');
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (Array.isArray(data?.items)) {
+          onData(data.items as ItineraryItem[]);
+        }
+      }
+    }, (err) => {
+      console.warn('Firestore itinerary subscription warning:', err);
+      if (onError) onError(err);
+    });
+    return unsubscribe;
+  } catch (err: any) {
+    console.warn('subscribeTripItinerary setup error:', err);
+    if (onError) onError(err);
+    return () => {};
+  }
+};
+
+// Save itinerary items to remote Firestore
+export const syncItineraryToRemote = async (tripId: string, items: ItineraryItem[]): Promise<boolean> => {
+  if (!isFirebaseReady() || !firestoreDb) return false;
+  try {
+    const docRef = doc(firestoreDb, 'trips', tripId, 'itinerary_data', 'items');
+    await setDoc(docRef, {
+      items,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+    return true;
+  } catch (err) {
+    console.error('Failed to sync itinerary to Firebase:', err);
+    return false;
+  }
+};
+

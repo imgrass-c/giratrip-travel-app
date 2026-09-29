@@ -16,6 +16,9 @@ import {
   syncExpenseToRemote, 
   deleteExpenseFromRemote, 
   syncTripToRemote,
+  subscribeTrips,
+  subscribeTripItinerary,
+  syncItineraryToRemote,
   type AppUser,
   getStoredUser,
   subscribeAuthState,
@@ -63,6 +66,24 @@ export const App: React.FC = () => {
     return () => unsubscribe();
   }, [isFirebaseConnected]);
 
+  // Subscribe to Firebase Trips realtime updates (cross-device sync)
+  useEffect(() => {
+    if (!isFirebaseConnected) return;
+    const unsubscribe = subscribeTrips((remoteTrips) => {
+      setTrips((prevTrips) => {
+        const tripMap = new Map<string, Trip>();
+        prevTrips.forEach((t) => tripMap.set(t.id, t));
+        remoteTrips.forEach((t) => tripMap.set(t.id, t));
+        const merged = Array.from(tripMap.values()).sort((a, b) => 
+          new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime()
+        );
+        saveTrips(merged);
+        return merged;
+      });
+    });
+    return () => unsubscribe();
+  }, [isFirebaseConnected]);
+
   const handleLogout = async () => {
     await logoutUser();
     setCurrentUser(null);
@@ -87,19 +108,29 @@ export const App: React.FC = () => {
     setItineraryItems(loadedItinerary);
     setExpenses(loadedExp);
 
-    // Subscribe to Firebase realtime updates if available
-    let unsubscribe = () => {};
+    // Subscribe to Firebase realtime updates for Expenses & Itinerary
+    let unsubscribeExpenses = () => {};
+    let unsubscribeItinerary = () => {};
+
     if (isFirebaseConnected) {
-      unsubscribe = subscribeTripExpenses(activeTrip.id, (remoteExpenses) => {
+      unsubscribeExpenses = subscribeTripExpenses(activeTrip.id, (remoteExpenses) => {
         if (remoteExpenses && remoteExpenses.length > 0) {
           setExpenses(remoteExpenses);
           saveExpenses(activeTrip.id, remoteExpenses);
         }
       });
+
+      unsubscribeItinerary = subscribeTripItinerary(activeTrip.id, (remoteItems) => {
+        if (remoteItems && remoteItems.length > 0) {
+          setItineraryItems(remoteItems);
+          saveItineraryItems(activeTrip.id, remoteItems);
+        }
+      });
     }
 
     return () => {
-      unsubscribe();
+      unsubscribeExpenses();
+      unsubscribeItinerary();
     };
   }, [activeTripId, isFirebaseConnected]);
 
@@ -147,6 +178,9 @@ export const App: React.FC = () => {
   const handleSaveItineraryItems = (items: ItineraryItem[]) => {
     setItineraryItems(items);
     saveItineraryItems(activeTrip.id, items);
+    if (isFirebaseConnected) {
+      syncItineraryToRemote(activeTrip.id, items);
+    }
   };
 
   // Link Spot to Expense
