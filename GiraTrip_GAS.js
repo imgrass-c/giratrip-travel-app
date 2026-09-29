@@ -102,7 +102,7 @@ function setupGiraTripSheets() {
   let memSheet = ss.getSheetByName(SHEET_NAMES.MEMBERS) || ss.insertSheet(SHEET_NAMES.MEMBERS, 1);
   memSheet.clear();
 
-  const memHeaders = ['成員姓名 (Name)', '身分角色 (Role)', '預設代墊人 (DefaultPayer)', '頭像代表色 (AvatarColor)', '備註 (Notes)'];
+  const memHeaders = ['成員姓名 (Name)', 'Google帳號 (Email/白名單)', '身分角色 (Role)', '預設代墊人 (DefaultPayer)', '頭像代表色 (AvatarColor)', '備註 (Notes)'];
   memSheet.getRange(1, 1, 1, memHeaders.length)
     .setValues([memHeaders])
     .setBackground('#15803D')
@@ -112,9 +112,9 @@ function setupGiraTripSheets() {
   memSheet.setFrozenRows(1);
 
   const sampleMembers = [
-    ['Alex', '管理者 (Admin)', '是', '#15803D', '主揪 / 財務管理'],
-    ['Chloe', '旅伴 (Member)', '否', '#E07A5F', '攝影 / 地圖導航'],
-    ['我', '旅伴 (Member)', '否', '#2563EB', '美食挑選 / 記帳']
+    ['Alex', 'alex@gmail.com', '管理者 (Admin)', '是', '#15803D', '主揪 / 財務管理'],
+    ['Chloe', 'chloe@gmail.com', '旅伴 (Member)', '否', '#E07A5F', '攝影 / 地圖導航'],
+    ['我', '', '旅伴 (Member)', '否', '#2563EB', '美食挑選 / 記帳']
   ];
   memSheet.getRange(2, 1, sampleMembers.length, memHeaders.length).setValues(sampleMembers);
 
@@ -122,7 +122,7 @@ function setupGiraTripSheets() {
     .requireValueInList(['管理者 (Admin)', '旅伴 (Member)'], true)
     .setAllowInvalid(false)
     .build();
-  memSheet.getRange('B2:B100').setDataValidation(roleRule);
+  memSheet.getRange('C2:C100').setDataValidation(roleRule);
   memSheet.autoResizeColumns(1, memHeaders.length);
 
   // 3. 初始化【權限與金鑰】
@@ -315,20 +315,31 @@ function handleGetItinerary() {
   const memSheet = ss.getSheetByName(SHEET_NAMES.MEMBERS);
   if (memSheet) {
     const memValues = memSheet.getDataRange().getValues();
-    for (let m = 1; m < memValues.length; m++) {
-      const mRow = memValues[m];
-      const mName = String(mRow[0] || '').trim();
-      if (!mName) continue;
-      const mRole = String(mRow[1] || '旅伴');
-      const isDefaultPayer = String(mRow[2] || '').includes('是');
-      const avatarColor = String(mRow[3] || '#15803D').trim();
-      members.push({
-        id: 'mem_' + m,
-        name: mName,
-        role: (mRole.includes('Admin') || mRole.includes('管理')) ? 'admin' : 'member',
-        isDefaultPayer: isDefaultPayer,
-        avatarColor: avatarColor
-      });
+    if (memValues.length > 1) {
+      const headers = memValues[0].map(function(h) { return String(h).toLowerCase(); });
+      const nameIdx = headers.findIndex(function(h) { return h.includes('姓名') || h.includes('name'); });
+      const emailIdx = headers.findIndex(function(h) { return h.includes('email') || h.includes('信箱') || h.includes('帳號'); });
+      const roleIdx = headers.findIndex(function(h) { return h.includes('身分') || h.includes('角色') || h.includes('role'); });
+      const payerIdx = headers.findIndex(function(h) { return h.includes('墊') || h.includes('payer'); });
+      const colorIdx = headers.findIndex(function(h) { return h.includes('色') || h.includes('color'); });
+
+      for (let m = 1; m < memValues.length; m++) {
+        const mRow = memValues[m];
+        const mName = String(mRow[nameIdx >= 0 ? nameIdx : 0] || '').trim();
+        if (!mName) continue;
+        const mEmail = emailIdx >= 0 ? String(mRow[emailIdx] || '').trim().toLowerCase() : '';
+        const mRole = roleIdx >= 0 ? String(mRow[roleIdx] || '旅伴') : String(mRow[1] || '旅伴');
+        const isDefaultPayer = payerIdx >= 0 ? String(mRow[payerIdx] || '').includes('是') : false;
+        const avatarColor = colorIdx >= 0 && mRow[colorIdx] ? String(mRow[colorIdx]).trim() : '#15803D';
+        members.push({
+          id: 'mem_' + m,
+          name: mName,
+          email: mEmail,
+          role: (mRole.includes('Admin') || mRole.includes('管理')) ? 'Admin' : 'Member',
+          isDefaultPayer: isDefaultPayer,
+          avatarColor: avatarColor
+        });
+      }
     }
   }
 
