@@ -2,10 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Default Primary: 高山冷杉綠 (Alpine Pine Green) */
+  --color-primary: #15803D;
+  --color-primary-dark: #166534;
+  --color-primary-light: #22C55E;
+  --color-primary-subtle: rgba(21, 128, 61, 0.08);
+}
+
+/* Color Themes */
+[data-accent="amber"] {
+  --color-primary: #D97706;
+  --color-primary-dark: #B45309;
+  --color-primary-light: #F59E0B;
+  --color-primary-subtle: rgba(217, 119, 6, 0.08);
+}
+
+[data-accent="pine"] {
+  --color-primary: #15803D;
+  --color-primary-dark: #166534;
+  --color-primary-light: #22C55E;
+  --color-primary-subtle: rgba(21, 128, 61, 0.08);
+}
+
+[data-accent="cobalt"] {
+  --color-primary: #2563EB;
+  --color-primary-dark: #1D4ED8;
+  --color-primary-light: #3B82F6;
+  --color-primary-subtle: rgba(37, 99, 235, 0.08);
+}
+
+[data-accent="obsidian"] {
+  --color-primary: #18181B;
+  --color-primary-dark: #09090B;
+  --color-primary-light: #27272A;
+  --color-primary-subtle: rgba(24, 24, 27, 0.08);
+}
+
+/* Accessibility: Font Scaling (Iron Rule 1 in pm-skills) */
+html[data-font-size="normal"] {
+  font-size: 16px;
+}
+html[data-font-size="large"] {
+  font-size: 18px;
+}
+html[data-font-size="xlarge"] {
+  font-size: 20px;
+}
+
+/* Accessibility: High Contrast Mode */
+html[data-high-contrast="true"] body {
+  contrast: 105%;
+}
+
 @layer base {
   body {
-    background-color: #E6E2B5;
-    color: #6E5454;
+    background-color: #F6F6F8;
+    color: #111111;
     font-family: 'Plus Jakarta Sans', 'Noto Sans TC', system-ui, -apple-system, sans-serif;
     -webkit-tap-highlight-color: transparent;
   }
@@ -20,11 +73,11 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D5CEBA;
+  background: #E2E3E8;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #967E7E;
+  background: #C4C6D0;
 }
 
 /* Hide scrollbar utility */
@@ -36,7 +89,7 @@
   scrollbar-width: none;
 }
 
-/* Safe area bottom padding for iPhone navigation bar */
+/* Safe area bottom padding for mobile navigation bar */
 .safe-area-pb {
-  padding-bottom: env(safe-area-inset-bottom, 8px);
+  padding-bottom: env(safe-area-inset-bottom, 12px);
 }

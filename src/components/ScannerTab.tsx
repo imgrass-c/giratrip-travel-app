@@ -148,16 +148,16 @@ export const ScannerTab: React.FC<ScannerTabProps> = ({
   return (
     <div className="space-y-4 pb-20">
       {/* Mode Switcher */}
-      <div className="bg-surface rounded-2xl border border-surface-border p-2 shadow-sm flex items-center gap-1.5">
+      <div className="bg-surface rounded-3xl border border-surface-border p-2 shadow-tactile flex items-center gap-2">
         <button
           onClick={() => {
             setScanMode('receipt');
             if (scanResult && scanResult.mode !== 'receipt') setScanResult(null);
           }}
-          className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2.5 px-3.5 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
             scanMode === 'receipt'
-              ? 'bg-primary text-white shadow-sm'
-              : 'text-ink-muted hover:text-ink hover:bg-canvas'
+              ? 'bg-primary text-white shadow-tactile-sm'
+              : 'text-ink-muted hover:text-ink hover:bg-canvas font-medium'
           }`}
         >
           <Receipt className="w-4 h-4 stroke-[2]" />
@@ -169,10 +169,10 @@ export const ScannerTab: React.FC<ScannerTabProps> = ({
             setScanMode('menu');
             if (scanResult && scanResult.mode !== 'menu') setScanResult(null);
           }}
-          className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2.5 px-3.5 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
             scanMode === 'menu'
-              ? 'bg-primary text-white shadow-sm'
-              : 'text-ink-muted hover:text-ink hover:bg-canvas'
+              ? 'bg-primary text-white shadow-tactile-sm'
+              : 'text-ink-muted hover:text-ink hover:bg-canvas font-medium'
           }`}
         >
           <Utensils className="w-4 h-4 stroke-[2]" />
@@ -181,10 +181,10 @@ export const ScannerTab: React.FC<ScannerTabProps> = ({
       </div>
 
       {/* AI Key notice or status */}
-      <div className="bg-canvas rounded-xl p-2.5 border border-surface-border/80 flex items-center justify-between text-[11px] text-ink-muted">
-        <div className="flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-primary" />
-          <span>
+      <div className="bg-surface rounded-2xl p-3 border border-surface-border shadow-tactile-sm flex items-center justify-between text-[11px] text-ink-muted">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-primary" />
+          <span className="font-medium">
             {geminiKey
               ? '已啟用 Google Gemini 1.5 Flash 多模態即時辨識與翻譯'
               : '本機離線智慧引擎已就緒（亦可在設定頁配置 Gemini API Key）'}
@@ -193,7 +193,7 @@ export const ScannerTab: React.FC<ScannerTabProps> = ({
       </div>
 
       {/* Upload & Camera Box */}
-      <div className="bg-surface rounded-2xl border-2 border-dashed border-surface-border p-6 text-center space-y-3.5 hover:border-primary/50 transition-colors">
+      <div className="bg-surface rounded-3xl border-2 border-dashed border-surface-border p-8 text-center space-y-4 hover:border-primary/50 transition-all shadow-tactile">
         <input
           ref={fileInputRef}
           type="file"
@@ -203,19 +203,19 @@ export const ScannerTab: React.FC<ScannerTabProps> = ({
           className="hidden"
         />
 
-        <div className="w-12 h-12 rounded-2xl bg-canvas border border-surface-border text-primary flex items-center justify-center mx-auto">
+        <div className="w-14 h-14 rounded-3xl bg-canvas border border-surface-border text-primary flex items-center justify-center mx-auto shadow-tactile-sm">
           {scanMode === 'receipt' ? (
-            <Receipt className="w-6 h-6 stroke-[1.5]" />
+            <Receipt className="w-7 h-7 stroke-[1.75]" />
           ) : (
-            <Utensils className="w-6 h-6 stroke-[1.5]" />
+            <Utensils className="w-7 h-7 stroke-[1.75]" />
           )}
         </div>
 
         <div>
-          <h3 className="text-sm font-bold text-ink">
+          <h3 className="text-sm font-extrabold text-ink">
             {scanMode === 'receipt' ? '拍照或上傳外幣收據明細' : '拍照或上傳外文餐廳菜單'}
           </h3>
-          <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto">
+          <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto font-medium">
             {scanMode === 'receipt'
               ? '自動解析店家名、消費日期、日文/韓文品名翻譯與金額，一鍵匯入分帳'
               : '逐行翻譯外文料理為繁體中文菜名，支援挑選菜色直接計算預算與記帳'}
@@ -223,19 +223,19 @@ export const ScannerTab: React.FC<ScannerTabProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+        <div className="flex flex-wrap items-center justify-center gap-2.5 pt-1">
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isProcessing}
-            className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-dark transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+            className="px-5 py-2.5 rounded-2xl bg-primary text-white text-xs font-bold hover:bg-primary-dark transition-all flex items-center gap-2 shadow-tactile-sm active:shadow-tactile-inset disabled:opacity-50"
           >
-            <Camera className="w-4 h-4" />
+            <Camera className="w-4 h-4 stroke-[2]" />
             <span>開啟相機拍照</span>
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isProcessing}
-            className="px-3.5 py-2 rounded-xl bg-canvas border border-surface-border text-ink text-xs font-medium hover:bg-surface-hover transition-colors flex items-center gap-1.5"
+            className="px-4 py-2.5 rounded-2xl bg-canvas border border-surface-border text-ink text-xs font-semibold hover:bg-surface transition-all shadow-tactile-sm flex items-center gap-2"
           >
             <Upload className="w-4 h-4 text-ink-muted" />
             <span>從相簿選擇照片</span>
@@ -244,18 +244,18 @@ export const ScannerTab: React.FC<ScannerTabProps> = ({
 
         {/* Quick Demo Sample Buttons */}
         <div className="pt-2 border-t border-surface-border/60 flex items-center justify-center gap-2">
-          <span className="text-[10px] text-ink-muted">免拍照快速體驗：</span>
+          <span className="text-[11px] text-ink-muted font-medium">免拍照快速體驗：</span>
           {scanMode === 'receipt' ? (
             <button
               onClick={() => handleLoadSample('receipt')}
-              className="text-[11px] px-2.5 py-1 rounded-lg bg-canvas text-primary hover:bg-primary/10 border border-primary/20 transition-colors font-medium"
+              className="text-[11px] px-3 py-1.5 rounded-xl bg-canvas text-primary hover:bg-primary/10 border border-primary/20 transition-all font-bold shadow-tactile-sm"
             >
               載入淺草和牛壽喜燒收據範例
             </button>
           ) : (
             <button
               onClick={() => handleLoadSample('menu')}
-              className="text-[11px] px-2.5 py-1 rounded-lg bg-canvas text-primary hover:bg-primary/10 border border-primary/20 transition-colors font-medium"
+              className="text-[11px] px-3 py-1.5 rounded-xl bg-canvas text-primary hover:bg-primary/10 border border-primary/20 transition-all font-bold shadow-tactile-sm"
             >
               載入職人炭烤鰻魚料理菜單範例
             </button>

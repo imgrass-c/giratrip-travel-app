@@ -145,17 +145,19 @@ export const ExpenseTab: React.FC<ExpenseTabProps> = ({
   return (
     <div className="space-y-4 pb-20">
       {/* Spend Summary Header */}
-      <div className="bg-surface rounded-2xl border border-surface-border p-4 shadow-sm">
+      <div className="bg-surface rounded-3xl border border-surface-border p-5 shadow-tactile">
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-semibold text-ink-muted">旅程累計總開銷</span>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-bold text-ink tracking-tight">
+            <span className="text-[11px] font-bold text-ink-muted tracking-wide">旅程累計總開銷</span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-3xl font-extrabold text-ink tracking-tight">
                 {totalBaseSpent.toLocaleString()}
               </span>
-              <span className="text-xs font-semibold text-primary">{trip.baseCurrency}</span>
+              <span className="text-xs font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20">
+                {trip.baseCurrency}
+              </span>
             </div>
-            <p className="text-[10px] text-ink-muted mt-0.5">共 {expenses.length} 筆支出紀錄</p>
+            <p className="text-[11px] font-medium text-ink-muted mt-1">共 {expenses.length} 筆支出紀錄</p>
           </div>
 
           <button
@@ -163,30 +165,30 @@ export const ExpenseTab: React.FC<ExpenseTabProps> = ({
               resetForm();
               setIsAddModalOpen(true);
             }}
-            className="px-4 py-2.5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-dark transition-colors flex items-center gap-1.5 shadow-sm"
+            className="px-4 py-2.5 rounded-2xl bg-primary text-white text-xs font-bold hover:bg-primary-dark transition-all flex items-center gap-1.5 shadow-tactile-sm active:shadow-tactile-inset"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>記一筆帳</span>
           </button>
         </div>
       </div>
 
       {/* Filter and Search */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5">
         <div className="relative flex-1">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
           <input
             type="text"
             placeholder="搜尋支出項目或店名..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-surface border border-surface-border text-xs text-ink placeholder:text-ink-light focus:outline-none focus:border-primary"
+            className="w-full pl-9 pr-3.5 py-2.5 rounded-2xl bg-surface border border-surface-border text-xs text-ink placeholder:text-ink-light focus:outline-none focus:border-primary shadow-tactile-sm transition-all"
           />
         </div>
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-2.5 py-1.5 rounded-xl bg-surface border border-surface-border text-xs text-ink focus:outline-none focus:border-primary"
+          className="px-3.5 py-2.5 rounded-2xl bg-surface border border-surface-border text-xs font-semibold text-ink focus:outline-none focus:border-primary shadow-tactile-sm transition-all"
         >
           <option value="all">全部分類</option>
           {Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
@@ -199,9 +201,9 @@ export const ExpenseTab: React.FC<ExpenseTabProps> = ({
 
       {/* Expense List */}
       {filteredExpenses.length === 0 ? (
-        <div className="bg-surface rounded-2xl border border-surface-border p-8 text-center space-y-2">
-          <div className="w-10 h-10 rounded-xl bg-canvas border border-surface-border flex items-center justify-center mx-auto text-ink-muted">
-            <Receipt className="w-5 h-5 stroke-[1.5]" />
+        <div className="bg-surface rounded-3xl border border-surface-border p-10 text-center space-y-2.5 shadow-tactile">
+          <div className="w-12 h-12 rounded-2xl bg-canvas border border-surface-border flex items-center justify-center mx-auto text-ink-muted shadow-tactile-sm">
+            <Receipt className="w-6 h-6 stroke-[1.5]" />
           </div>
           <h4 className="text-xs font-bold text-ink">尚無此條件的記帳紀錄</h4>
           <p className="text-[11px] text-ink-muted max-w-xs mx-auto">
@@ -209,7 +211,7 @@ export const ExpenseTab: React.FC<ExpenseTabProps> = ({
           </p>
         </div>
       ) : (
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {filteredExpenses.map((expense) => {
             const cat = CATEGORY_CONFIG[expense.category] || CATEGORY_CONFIG.other;
             const CatIcon = cat.icon;
@@ -219,36 +221,36 @@ export const ExpenseTab: React.FC<ExpenseTabProps> = ({
             return (
               <div
                 key={expense.id}
-                className="bg-surface rounded-2xl border border-surface-border p-3.5 shadow-sm hover:border-primary/50 transition-colors flex items-center justify-between gap-3 group"
+                className="bg-surface rounded-3xl border border-surface-border p-4 sm:p-5 shadow-tactile hover:shadow-tactile-lg transition-all flex items-center justify-between gap-3 group"
               >
                 {/* Left: Category Icon & Details */}
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-canvas border border-surface-border flex items-center justify-center text-primary flex-shrink-0 mt-0.5">
-                    <CatIcon className="w-4 h-4 stroke-[1.75]" />
+                <div className="flex items-start gap-3.5 min-w-0">
+                  <div className="w-10 h-10 rounded-2xl bg-canvas border border-surface-border flex items-center justify-center text-primary flex-shrink-0 mt-0.5 shadow-tactile-sm">
+                    <CatIcon className="w-4 h-4 stroke-[2]" />
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <h4 className="text-xs font-bold text-ink truncate">{expense.title}</h4>
-                      <span className="text-[10px] font-medium text-ink-muted px-1.5 py-0.2 rounded bg-canvas border border-surface-border">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="text-xs font-extrabold text-ink truncate">{expense.title}</h4>
+                      <span className="text-[10px] font-bold text-ink-muted px-2 py-0.5 rounded-full bg-canvas border border-surface-border">
                         {cat.label}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-[10px] text-ink-muted mt-1 flex-wrap">
-                      <span className="flex items-center gap-0.5">
-                        <Calendar className="w-2.5 h-2.5" />
+                    <div className="flex items-center gap-2 text-[10px] text-ink-muted mt-1.5 flex-wrap">
+                      <span className="flex items-center gap-1 font-medium">
+                        <Calendar className="w-3 h-3" />
                         {expense.date}
                       </span>
                       <span>•</span>
-                      <span className="flex items-center gap-1 font-medium text-ink">
+                      <span className="flex items-center gap-1 font-semibold text-ink">
                         <div
                           className="w-2 h-2 rounded-full inline-block"
-                          style={{ backgroundColor: payer?.avatarColor || '#526655' }}
+                          style={{ backgroundColor: payer?.avatarColor || '#D97706' }}
                         />
                         {payer?.name || '未知代墊者'} 先付
                       </span>
                       <span>•</span>
-                      <span>
+                      <span className="font-medium">
                         {expense.splitMemberIds.length === trip.members.length
                           ? '全員均攤'
                           : `${expense.splitMemberIds.length} 人分攤`}
@@ -257,7 +259,7 @@ export const ExpenseTab: React.FC<ExpenseTabProps> = ({
 
                     {/* Linked Spot Badge if attached */}
                     {linkedSpot && (
-                      <div className="inline-flex items-center gap-1 text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded-md border border-primary/20 mt-1.5">
+                      <div className="inline-flex items-center gap-1 text-[10px] text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20 mt-2 font-medium">
                         <MapPin className="w-2.5 h-2.5" />
                         <span className="truncate max-w-[160px]">{linkedSpot.title}</span>
                       </div>
@@ -267,19 +269,19 @@ export const ExpenseTab: React.FC<ExpenseTabProps> = ({
 
                 {/* Right: Amounts & Delete */}
                 <div className="text-right flex-shrink-0">
-                  <div className="text-sm font-bold text-ink tracking-tight">
+                  <div className="text-base font-extrabold text-ink tracking-tight">
                     {expense.amountInBaseCurrency.toLocaleString()}{' '}
-                    <span className="text-[10px] font-medium text-ink-muted">{trip.baseCurrency}</span>
+                    <span className="text-[10px] font-semibold text-ink-muted">{trip.baseCurrency}</span>
                   </div>
                   {expense.originalCurrency !== trip.baseCurrency && (
-                    <div className="text-[10px] text-ink-muted font-mono">
+                    <div className="text-[10px] text-ink-muted font-mono font-medium">
                       {expense.originalAmount.toLocaleString()} {expense.originalCurrency}
                     </div>
                   )}
 
                   <button
                     onClick={() => onDeleteExpense(expense.id)}
-                    className="text-ink-muted hover:text-terracotta p-1 transition-colors mt-1 opacity-60 hover:opacity-100"
+                    className="text-ink-muted hover:text-terracotta p-1.5 rounded-xl hover:bg-canvas transition-colors mt-1 opacity-60 hover:opacity-100"
                     title="刪除此筆記帳"
                   >
                     <Trash2 className="w-3.5 h-3.5" />

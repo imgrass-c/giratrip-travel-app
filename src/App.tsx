@@ -49,6 +49,16 @@ export const App: React.FC = () => {
   // Prefilled spot when transitioning from Itinerary to Expense
   const [prefilledItineraryItem, setPrefilledItineraryItem] = useState<ItineraryItem | null>(null);
 
+  // Initialize theme accent and accessibility preferences on mount
+  useEffect(() => {
+    const savedAccent = localStorage.getItem('giratrip_theme_accent') || 'pine';
+    const savedFontSize = localStorage.getItem('giratrip_font_size') || 'normal';
+    const savedContrast = localStorage.getItem('giratrip_high_contrast') || 'false';
+    document.documentElement.setAttribute('data-accent', savedAccent);
+    document.documentElement.setAttribute('data-font-size', savedFontSize);
+    document.documentElement.setAttribute('data-high-contrast', savedContrast);
+  }, []);
+
   // Reload data when activeTripId changes
   useEffect(() => {
     if (!activeTrip) return;
@@ -184,6 +194,7 @@ export const App: React.FC = () => {
             items={itineraryItems}
             onSaveItems={handleSaveItineraryItems}
             onLinkToExpense={handleLinkToExpense}
+            onUpdateTrip={handleUpdateActiveTrip}
           />
         )}
 

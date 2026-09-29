@@ -45,24 +45,26 @@ export const SettlementTab: React.FC<SettlementTabProps> = ({
   return (
     <div className="space-y-4 pb-20">
       {/* Top Header Card */}
-      <div className="bg-surface rounded-2xl border border-surface-border p-4 shadow-sm space-y-3">
+      <div className="bg-surface rounded-3xl border border-surface-border p-5 shadow-tactile space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-semibold text-ink-muted">旅程總結算金額</span>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-bold text-ink tracking-tight">
+            <span className="text-[11px] font-bold text-ink-muted tracking-wide">旅程總結算金額</span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-3xl font-extrabold text-ink tracking-tight">
                 {totalSpent.toLocaleString()}
               </span>
-              <span className="text-xs font-semibold text-primary">{trip.baseCurrency}</span>
+              <span className="text-xs font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20">
+                {trip.baseCurrency}
+              </span>
             </div>
-            <p className="text-[10px] text-ink-muted mt-0.5">
+            <p className="text-[11px] font-medium text-ink-muted mt-1">
               {trip.members.length} 位旅伴 • 最佳化最少轉帳僅需 {settlements.length} 筆結清
             </p>
           </div>
 
           <button
             onClick={handleCopyText}
-            className="px-3.5 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-dark transition-colors flex items-center gap-1.5 shadow-sm"
+            className="px-4 py-2.5 rounded-2xl bg-primary text-white text-xs font-bold hover:bg-primary-dark transition-all flex items-center gap-1.5 shadow-tactile-sm active:shadow-tactile-inset"
             title="複製純文字結算清單，方便貼到聊天室"
           >
             {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
@@ -72,52 +74,52 @@ export const SettlementTab: React.FC<SettlementTabProps> = ({
       </div>
 
       {/* Minimum Cash Flow Settlement Roadmap */}
-      <div className="bg-surface rounded-2xl border border-surface-border p-4 shadow-sm space-y-3">
+      <div className="bg-surface rounded-3xl border border-surface-border p-5 shadow-tactile space-y-3.5">
         <div className="flex items-center justify-between border-b border-surface-border pb-2.5">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <Scale className="w-4 h-4 text-primary" />
-            <h3 className="text-xs font-bold text-ink">最佳化轉帳還款方案 (最少轉帳筆數)</h3>
+            <h3 className="text-xs font-extrabold text-ink">最佳化轉帳還款方案 (最少轉帳筆數)</h3>
           </div>
-          <span className="text-[10px] px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
             {settlements.length} 筆即結清
           </span>
         </div>
 
         {settlements.length === 0 ? (
-          <div className="p-6 text-center space-y-1 bg-canvas/40 rounded-xl border border-surface-border/50">
+          <div className="p-8 text-center space-y-1.5 bg-canvas rounded-2xl border border-surface-border shadow-tactile-sm">
             <Check className="w-6 h-6 text-primary mx-auto" />
             <div className="text-xs font-bold text-ink">帳目已完全平衡</div>
             <p className="text-[11px] text-ink-muted">目前所有旅伴皆無欠款，無須轉帳！</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {settlements.map((s, idx) => (
               <div
                 key={idx}
-                className="p-3 rounded-xl bg-canvas border border-surface-border flex items-center justify-between gap-3 shadow-xs"
+                className="p-3.5 rounded-2xl bg-canvas border border-surface-border flex items-center justify-between gap-3 shadow-tactile-sm hover:shadow-tactile transition-all"
               >
                 {/* From Debtor */}
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-6 h-6 rounded-full bg-surface-dark border border-surface-border flex items-center justify-center text-[10px] font-bold text-ink">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-7 h-7 rounded-xl bg-surface border border-surface-border flex items-center justify-center text-[10px] font-extrabold text-ink shadow-tactile-sm">
                     {idx + 1}
                   </div>
                   <div className="truncate">
                     <span className="text-xs font-bold text-ink block truncate">{s.fromMemberName}</span>
-                    <span className="text-[9px] text-ink-muted">應還款</span>
+                    <span className="text-[9px] font-semibold text-ink-muted">應還款</span>
                   </div>
                 </div>
 
                 {/* Arrow */}
                 <div className="flex flex-col items-center flex-shrink-0 px-2">
-                  <span className="text-[9px] text-ink-muted font-medium">轉帳給</span>
-                  <ArrowRight className="w-4 h-4 text-primary" />
+                  <span className="text-[9px] text-ink-muted font-bold tracking-tight">轉帳給</span>
+                  <ArrowRight className="w-4 h-4 text-primary stroke-[2.5]" />
                 </div>
 
                 {/* To Creditor */}
                 <div className="text-right min-w-0">
                   <div className="text-xs font-bold text-ink block truncate">{s.toMemberName}</div>
-                  <div className="text-xs font-extrabold text-primary tracking-tight">
-                    {s.amount.toLocaleString()} <span className="text-[10px] font-normal">{s.currency}</span>
+                  <div className="text-sm font-extrabold text-primary tracking-tight">
+                    {s.amount.toLocaleString()} <span className="text-[10px] font-medium">{s.currency}</span>
                   </div>
                 </div>
               </div>
@@ -127,15 +129,15 @@ export const SettlementTab: React.FC<SettlementTabProps> = ({
       </div>
 
       {/* Member Balances Breakdown */}
-      <div className="bg-surface rounded-2xl border border-surface-border p-4 shadow-sm space-y-3">
+      <div className="bg-surface rounded-3xl border border-surface-border p-5 shadow-tactile space-y-3.5">
         <div className="flex items-center justify-between border-b border-surface-border pb-2.5">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-primary" />
-            <h3 className="text-xs font-bold text-ink">旅伴個人收支平衡表</h3>
+            <h3 className="text-xs font-extrabold text-ink">旅伴個人收支平衡表</h3>
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {balances.map((b) => {
             const isCreditor = b.netBalance > 0;
             const isDebtor = b.netBalance < 0;
@@ -143,12 +145,12 @@ export const SettlementTab: React.FC<SettlementTabProps> = ({
             return (
               <div
                 key={b.memberId}
-                className="p-3 rounded-xl bg-canvas border border-surface-border flex items-center justify-between gap-3"
+                className="p-3.5 rounded-2xl bg-canvas border border-surface-border flex items-center justify-between gap-3 shadow-tactile-sm"
               >
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className="w-8 h-8 rounded-full border border-surface-border flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                    style={{ backgroundColor: trip.members.find((m) => m.id === b.memberId)?.avatarColor || '#526655' }}
+                    className="w-9 h-9 rounded-2xl border border-surface-border flex items-center justify-center text-xs font-bold text-white flex-shrink-0 shadow-tactile-sm"
+                    style={{ backgroundColor: trip.members.find((m) => m.id === b.memberId)?.avatarColor || '#D97706' }}
                   >
                     {b.memberName.slice(0, 1)}
                   </div>
@@ -168,13 +170,13 @@ export const SettlementTab: React.FC<SettlementTabProps> = ({
                       isCreditor ? 'text-primary' : isDebtor ? 'text-terracotta' : 'text-ink-muted'
                     }`}
                   >
-                    {isCreditor && <TrendingUp className="w-3 h-3" />}
-                    {isDebtor && <TrendingDown className="w-3 h-3" />}
+                    {isCreditor && <TrendingUp className="w-3.5 h-3.5" />}
+                    {isDebtor && <TrendingDown className="w-3.5 h-3.5" />}
                     <span>
                       {isCreditor ? `應收 +${b.netBalance.toLocaleString()}` : isDebtor ? `應付 ${b.netBalance.toLocaleString()}` : '已平衡 $0'}
                     </span>
                   </div>
-                  <span className="text-[10px] text-ink-muted">{trip.baseCurrency}</span>
+                  <span className="text-[10px] text-ink-muted font-medium">{trip.baseCurrency}</span>
                 </div>
               </div>
             );

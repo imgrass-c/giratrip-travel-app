@@ -3,14 +3,20 @@
     "app_name": "GiraTrip (記啦旅)",
     "app_slogan": "長頸鹿全覽行程，花費輕鬆記啦！",
     "naming_rationale": "結合長頸鹿英文 Giraffe（象徵視野高瞻遠矚、把長長行程與帳單一覽無遺）與中文諧音『記啦』+ Trip",
+    "design_system": "Modern Tactile Card UI (Soft Neu-Skeuomorphism meets Minimalist Card Design)",
     "color_palette": {
-      "canvas_bg": "#E6E2B5",
-      "text_primary": "#6E5454",
-      "text_muted": "#967E7E",
-      "surface_card": "#F2EED9",
-      "surface_border": "#D5CEBA",
-      "primary_accent": "#526655",
-      "secondary_accent": "#8A6B58"
+      "canvas_bg": "#F6F6F8",
+      "text_primary": "#111111",
+      "text_muted": "#71717A",
+      "surface_card": "#FFFFFF",
+      "surface_border": "#EBECEF",
+      "curated_primary_options": [
+        { "id": "pine", "name": "高山冷杉綠 (Alpine Pine Green)", "hex": "#15803D", "selected": true },
+        { "id": "amber", "name": "薩凡納暖金 (Savannah Amber)", "hex": "#D97706" },
+        { "id": "cobalt", "name": "寰宇天際藍 (Horizon Cobalt Blue)", "hex": "#2563EB" },
+        { "id": "obsidian", "name": "極簡曜石黑 (Minimal Obsidian)", "hex": "#18181B" }
+      ],
+      "active_primary": "#15803D"
     },
     "icon_library": "lucide-react",
     "no_emoji": true
@@ -18,7 +24,7 @@
   "infra_stack": {
     "type": "Hybrid Cloud & Local-First Web App",
     "dynamic_database": "Google Firebase Firestore (高頻動態金流/記帳即時監聽，開啟 App 秒同步)",
-    "static_sheet_sync": "Google Sheets (靜態行程景點、Google Maps 連結、IG 影片連結，支援下載本機離線與一鍵手動同步)",
+    "static_sheet_sync": "Google Apps Script (GAS) API 後端 + Google Sheets (支援 RBAC 管理者權限控管、金鑰安全儲存、行程 JSON API 雙向同步)",
     "document_storage": "Google Drive (行程門票/住宿憑證 PDF 外部安全檢視連結)",
     "local_cache": "IndexedDB / LocalStorage (離線優先，快取行程與靜態連結，弱網環境秒開)",
     "hosting": "GitHub + Cloudflare Pages (100% Free，全域邊緣節點加速，月維護費用 0 元)"
@@ -36,7 +42,8 @@
       "📊 雙軌資料同步 (Firebase + Google Sheets)：動態花費寫入 Firebase 達成多裝置即時同步；靜態行程支援從 Google Sheets 下載快取至本機端離線使用，支援一鍵手動同步更新",
       "💰 多幣別記帳與彈性分帳：預設 TWD/JPY/KRW/USD/EUR/THB 自訂匯率；混合式均攤與自訂勾選誰分攤；內建最小轉帳次數演算法 (Min Cash Flow) 算出最少還款筆數",
       "📸 雙模 OCR 智慧掃描翻譯 (菜單＋收據)：支援海外（日/韓/英）紙本收據 OCR 萃取品項與金額，以及餐廳外文菜單即時辨識並翻譯為繁體中文，支援一鍵轉入記帳",
-      "🎨 用戶指定暖調視覺規範：畫布基底 #E6E2B5、內文字體 #6E5454、卡片 #F2EED9、嚴格無 Emoji 原則、純 1.5px Lucide 向量細線圖標"
+      "🔒 角色權限分層 (RBAC) 與零外洩資安防護：一般旅伴預設僅能操控無障礙（字體大小 100%/112%/125%、強光高對比）、主視覺選色與備份；Firebase 與 Gemini 金鑰預設全數隱藏遮蔽，需管理者 Master PIN 解鎖，或透過環境變數 (.env) 於建置階段零接觸注入",
+      "🎨 用戶指定 Modern Tactile Card UI 規範：畫布低飽和微冷灰 #F6F6F8、高山冷杉綠 #15803D (主色)、純白實體卡片 #FFFFFF、嚴格無 Emoji 原則、純 1.5px~2px Lucide 向量圖標、手機按鈕 >= 44px"
     ],
     "out_of_scope": [
       "LINE 機器人/LIFF 整合（依用戶指示本階段完全排除，專注純 Web App 體驗）",

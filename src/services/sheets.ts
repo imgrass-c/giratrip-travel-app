@@ -95,19 +95,68 @@ function parseCsvRow(row: string): string[] {
   return result;
 }
 
+export interface SheetSyncResult {
+  items: ItineraryItem[];
+  members?: { id: string; name: string; avatarColor: string; isDefaultPayer?: boolean }[];
+  tripTitle?: string;
+}
+
 /**
- * Fetches Google Sheet published CSV url with fallback proxy/CORS warning
+ * Fetches full trip bundle (itinerary + members) from GAS or CSV
  */
-export const fetchGoogleSheetItinerary = async (csvUrl: string, tripId: string): Promise<ItineraryItem[]> => {
-  if (!csvUrl || !csvUrl.trim()) {
-    throw new Error('Google Sheets CSV URL 為空');
+export const fetchGoogleSheetBundle = async (sheetOrGasUrl: string, tripId: string): Promise<SheetSyncResult> => {
+  if (!sheetOrGasUrl || !sheetOrGasUrl.trim()) {
+    throw new Error('Google Sheets 或 GAS 網址為空');
   }
 
-  const cleanUrl = csvUrl.trim();
+  const cleanUrl = sheetOrGasUrl.trim();
   if (!/^https?:\/\//i.test(cleanUrl)) {
     throw new Error('請輸入以 https:// 開頭的合法網址');
   }
 
+  // 1. Google Apps Script Web App (JSON API)
+  if (cleanUrl.includes('script.google.com')) {
+    const fetchUrl = cleanUrl.includes('?') 
+      ? `${cleanUrl}&action=getItinerary` 
+      : `${cleanUrl}?action=getItinerary`;
+    
+    const response = await fetch(fetchUrl, { redirect: 'follow' });
+    if (!response.ok) {
+      throw new Error(`Google Apps Script 連線失敗，HTTP 狀態碼: ${response.status}`);
+    }
+    const json = await response.json();
+    if (json.status !== 'success' || !Array.isArray(json.items)) {
+      throw new Error(json.message || 'Google Apps Script 回傳資料格式不符合規範');
+    }
+    
+    const items: ItineraryItem[] = json.items.map((it: any, idx: number) => ({
+      id: it.id || `gas_it_${Date.now()}_${idx}`,
+      tripId,
+      dayNumber: Number(it.dayNumber) || 1,
+      time: String(it.time || '10:00'),
+      title: String(it.title || '行程活動'),
+      locationName: String(it.locationName || it.title || ''),
+      category: (it.category as ItineraryCategory) || 'attraction',
+      notes: it.notes || undefined,
+      googleMapsUrl: it.googleMapsUrl || undefined,
+      instagramUrl: it.instagramUrl || undefined,
+      pdfUrl: it.pdfUrl || undefined,
+      createdAt: new Date().toISOString(),
+    }));
+
+    const members = Array.isArray(json.members) && json.members.length > 0
+      ? json.members.map((m: any, i: number) => ({
+          id: m.id || `mem_${i}`,
+          name: String(m.name || '旅伴'),
+          avatarColor: String(m.avatarColor || '#15803D'),
+          isDefaultPayer: !!m.isDefaultPayer,
+        }))
+      : undefined;
+
+    return { items, members, tripTitle: json.tripTitle };
+  }
+
+  // 2. Published Google Sheet CSV
   const response = await fetch(cleanUrl);
   if (!response.ok) {
     throw new Error(`Google Sheets 下載失敗，狀態碼: ${response.status}`);
@@ -115,5 +164,40 @@ export const fetchGoogleSheetItinerary = async (csvUrl: string, tripId: string):
 
   const csvText = await response.text();
   const items = parseGoogleSheetCsv(csvText, tripId);
-  return items;
+  return { items };
+};
+
+/**
+ * Fetches itinerary from either a Google Apps Script (GAS) Web App or a published Google Sheet CSV
+ */
+export const fetchGoogleSheetItinerary = async (sheetOrGasUrl: string, tripId: string): Promise<ItineraryItem[]> => {
+  const result = await fetchGoogleSheetBundle(sheetOrGasUrl, tripId);
+  return result.items;
+};
+
+/**
+ * 安全地從 Google Apps Script 讀取管理者雲端設定（比對 Admin PIN）
+ */
+export const fetchGasConfig = async (gasUrl: string, adminPin: string) => {
+  const cleanUrl = gasUrl.trim();
+  const fetchUrl = `${cleanUrl}${cleanUrl.includes('?') ? '&' : '?'}action=getConfig&adminPin=${encodeURIComponent(adminPin)}`;
+  const response = await fetch(fetchUrl, { redirect: 'follow' });
+  if (!response.ok) {
+    throw new Error(`GAS 設定讀取失敗 (${response.status})`);
+  }
+  return await response.json();
+};
+
+/**
+ * 透過 GAS doPost 將記帳開銷即時歸檔儲存至 Google 試算表
+ */
+export const syncExpenseToGas = async (gasUrl: string, expense: any) => {
+  const cleanUrl = gasUrl.trim();
+  const response = await fetch(cleanUrl, {
+    method: 'POST',
+    redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'syncExpense', expense }),
+  });
+  return await response.json();
 };
