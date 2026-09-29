@@ -15,7 +15,11 @@ import {
   subscribeTripExpenses, 
   syncExpenseToRemote, 
   deleteExpenseFromRemote, 
-  syncTripToRemote 
+  syncTripToRemote,
+  type AppUser,
+  getStoredUser,
+  subscribeAuthState,
+  logoutUser
 } from './services/firebase';
 import { Navbar } from './components/Navbar';
 import { BottomNav, type ActiveTab } from './components/BottomNav';
@@ -25,6 +29,7 @@ import { ExpenseTab } from './components/ExpenseTab';
 import { ScannerTab } from './components/ScannerTab';
 import { SettlementTab } from './components/SettlementTab';
 import { SettingsTab } from './components/SettingsTab';
+import { AuthGate } from './components/AuthGate';
 
 export const App: React.FC = () => {
   const [trips, setTrips] = useState<Trip[]>(() => loadTrips());
@@ -32,6 +37,7 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('itinerary');
   const [isTripModalOpen, setIsTripModalOpen] = useState(false);
   const [isFirebaseConnected, setIsFirebaseConnected] = useState<boolean>(() => isFirebaseReady());
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(() => getStoredUser());
 
   // Active Trip derived
   const activeTrip = trips.find((t) => t.id === activeTripId) || trips[0];
@@ -48,6 +54,19 @@ export const App: React.FC = () => {
 
   // Prefilled spot when transitioning from Itinerary to Expense
   const [prefilledItineraryItem, setPrefilledItineraryItem] = useState<ItineraryItem | null>(null);
+
+  // Subscribe to Firebase Auth state
+  useEffect(() => {
+    const unsubscribe = subscribeAuthState((user) => {
+      setCurrentUser(user);
+    });
+    return () => unsubscribe();
+  }, [isFirebaseConnected]);
+
+  const handleLogout = async () => {
+    await logoutUser();
+    setCurrentUser(null);
+  };
 
   // Initialize theme accent and accessibility preferences on mount
   useEffect(() => {
@@ -176,78 +195,86 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-canvas text-ink flex flex-col font-sans selection:bg-primary/20">
-      {/* Top Navbar */}
-      <Navbar
-        trips={trips}
-        activeTrip={activeTrip}
-        onSelectTrip={handleSelectTrip}
-        onOpenNewTripModal={() => setIsTripModalOpen(true)}
-        isFirebaseConnected={isFirebaseConnected}
-      />
+    <AuthGate
+      currentUser={currentUser}
+      activeTrip={activeTrip}
+      onAuthSuccess={(u) => setCurrentUser(u)}
+    >
+      <div className="min-h-screen bg-canvas text-ink flex flex-col font-sans selection:bg-primary/20">
+        {/* Top Navbar */}
+        <Navbar
+          trips={trips}
+          activeTrip={activeTrip}
+          onSelectTrip={handleSelectTrip}
+          onOpenNewTripModal={() => setIsTripModalOpen(true)}
+          isFirebaseConnected={isFirebaseConnected}
+          currentUser={currentUser}
+          onLogout={handleLogout}
+        />
 
-      {/* Main Content Pane */}
-      <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-5">
-        {activeTab === 'itinerary' && (
-          <ItineraryTab
-            trip={activeTrip}
-            items={itineraryItems}
-            onSaveItems={handleSaveItineraryItems}
-            onLinkToExpense={handleLinkToExpense}
-            onUpdateTrip={handleUpdateActiveTrip}
-          />
-        )}
+        {/* Main Content Pane */}
+        <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-5">
+          {activeTab === 'itinerary' && (
+            <ItineraryTab
+              trip={activeTrip}
+              items={itineraryItems}
+              onSaveItems={handleSaveItineraryItems}
+              onLinkToExpense={handleLinkToExpense}
+              onUpdateTrip={handleUpdateActiveTrip}
+            />
+          )}
 
-        {activeTab === 'expenses' && (
-          <ExpenseTab
-            trip={activeTrip}
-            expenses={expenses}
-            itineraryItems={itineraryItems}
-            onAddExpense={handleAddExpense}
-            onDeleteExpense={handleDeleteExpense}
-            prefilledItineraryItem={prefilledItineraryItem}
-            onClearPrefilledItineraryItem={() => setPrefilledItineraryItem(null)}
-          />
-        )}
+          {activeTab === 'expenses' && (
+            <ExpenseTab
+              trip={activeTrip}
+              expenses={expenses}
+              itineraryItems={itineraryItems}
+              onAddExpense={handleAddExpense}
+              onDeleteExpense={handleDeleteExpense}
+              prefilledItineraryItem={prefilledItineraryItem}
+              onClearPrefilledItineraryItem={() => setPrefilledItineraryItem(null)}
+            />
+          )}
 
-        {activeTab === 'scanner' && (
-          <ScannerTab
-            trip={activeTrip}
-            onImportExpenseFromOCR={handleImportExpenseFromOCR}
-          />
-        )}
+          {activeTab === 'scanner' && (
+            <ScannerTab
+              trip={activeTrip}
+              onImportExpenseFromOCR={handleImportExpenseFromOCR}
+            />
+          )}
 
-        {activeTab === 'settlement' && (
-          <SettlementTab
-            trip={activeTrip}
-            expenses={expenses}
-          />
-        )}
+          {activeTab === 'settlement' && (
+            <SettlementTab
+              trip={activeTrip}
+              expenses={expenses}
+            />
+          )}
 
-        {activeTab === 'settings' && (
-          <SettingsTab
-            trip={activeTrip}
-            onUpdateTrip={handleUpdateActiveTrip}
-            onReloadAllData={handleReloadAllData}
-            isFirebaseConnected={isFirebaseConnected}
-            setIsFirebaseConnected={setIsFirebaseConnected}
-          />
-        )}
-      </main>
+          {activeTab === 'settings' && (
+            <SettingsTab
+              trip={activeTrip}
+              onUpdateTrip={handleUpdateActiveTrip}
+              onReloadAllData={handleReloadAllData}
+              isFirebaseConnected={isFirebaseConnected}
+              setIsFirebaseConnected={setIsFirebaseConnected}
+            />
+          )}
+        </main>
 
-      {/* Bottom Thumb-Friendly Nav */}
-      <BottomNav
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        expenseCount={expenses.length}
-      />
+        {/* Bottom Thumb-Friendly Nav */}
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          expenseCount={expenses.length}
+        />
 
-      {/* Create Trip Modal */}
-      <TripModal
-        isOpen={isTripModalOpen}
-        onClose={() => setIsTripModalOpen(false)}
-        onSaveTrip={handleSaveTrip}
-      />
-    </div>
+        {/* Create Trip Modal */}
+        <TripModal
+          isOpen={isTripModalOpen}
+          onClose={() => setIsTripModalOpen(false)}
+          onSaveTrip={handleSaveTrip}
+        />
+      </div>
+    </AuthGate>
   );
 };

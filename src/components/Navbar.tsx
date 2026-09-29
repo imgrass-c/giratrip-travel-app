@@ -3,9 +3,11 @@ import {
   Plus, 
   ChevronDown, 
   MapPin, 
-  FolderSync
+  FolderSync,
+  LogOut
 } from 'lucide-react';
 import type { Trip } from '../types';
+import type { AppUser } from '../services/firebase';
 
 interface NavbarProps {
   trips: Trip[];
@@ -13,6 +15,8 @@ interface NavbarProps {
   onSelectTrip: (tripId: string) => void;
   onOpenNewTripModal: () => void;
   isFirebaseConnected: boolean;
+  currentUser?: AppUser | null;
+  onLogout?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -21,6 +25,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectTrip,
   onOpenNewTripModal,
   isFirebaseConnected,
+  currentUser,
+  onLogout,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -58,22 +64,40 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Cloud Sync Status Indicator (Mobile: Top Right) */}
-          <div 
-            className="flex sm:hidden items-center flex-shrink-0" 
-            title={isFirebaseConnected ? 'Firebase 即時同步中 (資料上傳秒級更新)' : 'Local-First 本機存儲模式 (支援離線)'}
-          >
-            {isFirebaseConnected ? (
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold shadow-tactile-sm">
-                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span>即時同步</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-surface border border-surface-border text-ink-muted text-[10px] font-semibold shadow-tactile-sm">
-                <FolderSync className="w-3.5 h-3.5" />
-                <span>本機快取</span>
+          {/* Right: Cloud Sync & User Profile (Mobile: Top Right) */}
+          <div className="flex sm:hidden items-center gap-2 flex-shrink-0">
+            {currentUser && (
+              <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-surface border border-surface-border shadow-tactile-sm">
+                <span className="w-6 h-6 rounded-xl bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold flex items-center justify-center">
+                  {(currentUser.displayName || currentUser.email || 'U')[0].toUpperCase()}
+                </span>
+                {onLogout && (
+                  <button
+                    onClick={onLogout}
+                    className="p-1 text-ink-muted hover:text-red-600 transition-colors"
+                    title="登出帳號"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             )}
+
+            <div 
+              title={isFirebaseConnected ? 'Firebase 即時同步中 (資料上傳秒級更新)' : 'Local-First 本機存儲模式 (支援離線)'}
+            >
+              {isFirebaseConnected ? (
+                <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold shadow-tactile-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  <span>同步中</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-surface border border-surface-border text-ink-muted text-[10px] font-semibold shadow-tactile-sm">
+                  <FolderSync className="w-3 h-3" />
+                  <span>本機</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -177,6 +201,30 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             )}
           </div>
+
+          {/* User Profile & Logout (Desktop Only) */}
+          {currentUser && (
+            <div className="hidden sm:flex items-center gap-2 pl-1 border-l border-surface-border">
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-surface border border-surface-border shadow-tactile-sm">
+                <span className="w-6 h-6 rounded-xl bg-primary/10 border border-primary/20 text-primary text-[11px] font-bold flex items-center justify-center">
+                  {(currentUser.displayName || currentUser.email || 'U')[0].toUpperCase()}
+                </span>
+                <span className="text-[11px] font-semibold text-ink max-w-[100px] truncate">
+                  {currentUser.displayName || currentUser.email}
+                </span>
+              </div>
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  className="min-h-[44px] px-2.5 py-2 rounded-2xl bg-canvas border border-surface-border text-ink-muted hover:text-red-600 hover:border-red-200 text-xs font-semibold transition-all shadow-tactile-sm flex items-center gap-1"
+                  title="登出帳號"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>登出</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </header>

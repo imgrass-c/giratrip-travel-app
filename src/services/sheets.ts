@@ -148,6 +148,8 @@ export const fetchGoogleSheetBundle = async (sheetOrGasUrl: string, tripId: stri
       ? json.members.map((m: any, i: number) => ({
           id: m.id || `mem_${i}`,
           name: String(m.name || '旅伴'),
+          email: m.email ? String(m.email).trim().toLowerCase() : undefined,
+          role: m.role === 'Admin' || m.role === 'admin' ? 'Admin' : 'Member',
           avatarColor: String(m.avatarColor || '#15803D'),
           isDefaultPayer: !!m.isDefaultPayer,
         }))

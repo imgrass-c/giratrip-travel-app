@@ -1,5 +1,13 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { 
+  getAuth, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  signOut, 
+  onAuthStateChanged, 
+  type Auth 
+} from 'firebase/auth';
+import { 
   getFirestore, 
   collection, 
   onSnapshot, 
@@ -21,8 +29,16 @@ export interface FirebaseCustomConfig {
   appId: string;
 }
 
+export interface AppUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+}
+
 let firebaseApp: FirebaseApp | null = null;
 let firestoreDb: Firestore | null = null;
+let firebaseAuth: Auth | null = null;
 
 export const getStoredFirebaseConfig = (): FirebaseCustomConfig | null => {
   try {
@@ -62,6 +78,7 @@ export const initFirebase = (customConfig?: FirebaseCustomConfig): boolean => {
       firebaseApp = getApps()[0];
     }
     firestoreDb = getFirestore(firebaseApp);
+    firebaseAuth = getAuth(firebaseApp);
     return true;
   } catch (err) {
     console.error('Firebase initialization error:', err);
@@ -69,11 +86,88 @@ export const initFirebase = (customConfig?: FirebaseCustomConfig): boolean => {
   }
 };
 
+export const getFirebaseAuth = (): Auth | null => {
+  if (!firebaseAuth && firebaseApp) {
+    firebaseAuth = getAuth(firebaseApp);
+  }
+  return firebaseAuth;
+};
+
 export const isFirebaseReady = (): boolean => {
   if (!firestoreDb) {
     return initFirebase();
   }
   return true;
+};
+
+export const loginWithGoogle = async (): Promise<AppUser> => {
+  if (!isFirebaseReady()) {
+    throw new Error('尚未設定 Firebase 連線，請先確認已配置 Firebase 金鑰');
+  }
+  const auth = getFirebaseAuth();
+  if (!auth) {
+    throw new Error('Firebase Auth 模組尚未就緒');
+  }
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  const result = await signInWithPopup(auth, provider);
+  const appUser: AppUser = {
+    uid: result.user.uid,
+    email: result.user.email,
+    displayName: result.user.displayName,
+    photoURL: result.user.photoURL,
+  };
+  localStorage.setItem('giratrip_current_user', JSON.stringify(appUser));
+  return appUser;
+};
+
+export const logoutUser = async (): Promise<void> => {
+  const auth = getFirebaseAuth();
+  if (auth) {
+    await signOut(auth);
+  }
+  localStorage.removeItem('giratrip_current_user');
+};
+
+export const getStoredUser = (): AppUser | null => {
+  try {
+    const raw = localStorage.getItem('giratrip_current_user');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.warn('Failed to parse stored user:', e);
+  }
+  return null;
+};
+
+export const subscribeAuthState = (
+  callback: (user: AppUser | null) => void
+): (() => void) => {
+  if (!isFirebaseReady()) {
+    callback(getStoredUser());
+    return () => {};
+  }
+
+  const auth = getFirebaseAuth();
+  if (!auth) {
+    callback(getStoredUser());
+    return () => {};
+  }
+
+  return onAuthStateChanged(auth, (user) => {
+    if (user) {
+      const appUser: AppUser = {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+      };
+      localStorage.setItem('giratrip_current_user', JSON.stringify(appUser));
+      callback(appUser);
+    } else {
+      localStorage.removeItem('giratrip_current_user');
+      callback(null);
+    }
+  });
 };
 
 // Realtime subscription for expenses of a trip

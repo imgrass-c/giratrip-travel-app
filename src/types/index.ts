@@ -3,6 +3,8 @@ export type CurrencyCode = 'TWD' | 'JPY' | 'KRW' | 'USD' | 'EUR' | 'THB';
 export interface Member {
   id: string;
   name: string;
+  email?: string;
+  role?: 'Admin' | 'Member';
   avatarColor: string; // Tailwind color class or hex
   isDefaultPayer?: boolean;
 }
