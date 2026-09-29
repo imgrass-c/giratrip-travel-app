@@ -40,7 +40,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=giratrip-travel-app
+          command: pages deploy dist --project-name=giratrip-travel-app --branch=main
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
