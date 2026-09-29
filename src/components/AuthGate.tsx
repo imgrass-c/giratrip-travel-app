@@ -70,7 +70,9 @@ export const AuthGate: React.FC<AuthGateProps> = ({
     } catch (err: any) {
       console.error('Google Sign-in failure:', err);
       const errMsg = err?.message || '登入失敗，請稍後再試';
-      if (errMsg.includes('unauthorized-domain') || errMsg.includes('auth/unauthorized-domain')) {
+      if (errMsg.includes('configuration-not-found') || errMsg.includes('auth/configuration-not-found')) {
+        setAuthError('Firebase 專案尚未在後台啟用 Google 登入。請前往 Firebase Console ➔ Authentication ➔ Sign-in method 開啟 Google 提供者。');
+      } else if (errMsg.includes('unauthorized-domain') || errMsg.includes('auth/unauthorized-domain')) {
         setAuthError('此網站網域尚未在 Firebase Console 註冊為「已授權網域 (Authorized domain)」。');
         setIsDomainHelpOpen(true);
       } else if (errMsg.includes('popup-closed-by-user')) {
