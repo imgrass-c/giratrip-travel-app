@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Calendar, MapPin, Coins, Users, Check } from 'lucide-react';
 import type { Trip, Member, CurrencyCode } from '../types';
 
@@ -6,6 +6,7 @@ interface TripModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSaveTrip: (tripData: Omit<Trip, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onDeleteTrip?: (tripId: string) => void;
   initialTrip?: Trip | null;
 }
 
@@ -16,6 +17,7 @@ export const TripModal: React.FC<TripModalProps> = ({
   isOpen,
   onClose,
   onSaveTrip,
+  onDeleteTrip,
   initialTrip,
 }) => {
   const [title, setTitle] = useState(initialTrip?.title || '');
@@ -31,6 +33,37 @@ export const TripModal: React.FC<TripModalProps> = ({
     ]
   );
   const [newMemberName, setNewMemberName] = useState('');
+
+  // Sync state when initialTrip or modal visibility changes
+  useEffect(() => {
+    if (initialTrip) {
+      setTitle(initialTrip.title || '');
+      setDestination(initialTrip.destination || '');
+      setStartDate(initialTrip.startDate || new Date().toISOString().split('T')[0]);
+      setEndDate(initialTrip.endDate || new Date().toISOString().split('T')[0]);
+      setBaseCurrency(initialTrip.baseCurrency || 'TWD');
+      setSheetCsvUrl(initialTrip.sheetCsvUrl || '');
+      setMembers(
+        initialTrip.members && initialTrip.members.length > 0
+          ? initialTrip.members
+          : [
+              { id: 'm_me', name: '我 (主記人)', avatarColor: '#526655', isDefaultPayer: true },
+              { id: `m_${Date.now()}_1`, name: '旅伴 1', avatarColor: '#8A6B58' },
+            ]
+      );
+    } else {
+      setTitle('');
+      setDestination('');
+      setStartDate(new Date().toISOString().split('T')[0]);
+      setEndDate(new Date().toISOString().split('T')[0]);
+      setBaseCurrency('TWD');
+      setSheetCsvUrl('');
+      setMembers([
+        { id: 'm_me', name: '我 (主記人)', avatarColor: '#526655', isDefaultPayer: true },
+        { id: `m_${Date.now()}_1`, name: '旅伴 1', avatarColor: '#8A6B58' },
+      ]);
+    }
+  }, [initialTrip, isOpen]);
 
   if (!isOpen) return null;
 
@@ -261,21 +294,38 @@ export const TripModal: React.FC<TripModalProps> = ({
           </div>
 
           {/* Footer Submit Button */}
-          <div className="pt-2 flex justify-end gap-2 border-t border-surface-border">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-medium text-ink-muted hover:text-ink hover:bg-surface-hover transition-colors"
-            >
-              取消
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-dark transition-colors flex items-center gap-1.5 shadow-sm"
-            >
-              <Check className="w-4 h-4" />
-              <span>{initialTrip ? '儲存變更' : '立即建立旅程'}</span>
-            </button>
+          <div className="pt-3 flex items-center justify-between border-t border-surface-border">
+            {initialTrip && onDeleteTrip ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onDeleteTrip(initialTrip.id);
+                  onClose();
+                }}
+                className="px-3 py-2 rounded-xl text-xs font-semibold text-terracotta hover:bg-terracotta/10 transition-colors flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>刪除此旅程</span>
+              </button>
+            ) : (
+              <div />
+            )}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl text-xs font-medium text-ink-muted hover:text-ink hover:bg-surface-hover transition-colors"
+              >
+                取消
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-dark transition-colors flex items-center gap-1.5 shadow-sm"
+              >
+                <Check className="w-4 h-4" />
+                <span>{initialTrip ? '儲存變更' : '立即建立旅程'}</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>

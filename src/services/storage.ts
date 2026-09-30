@@ -157,6 +157,30 @@ export const saveTrips = (trips: Trip[]) => {
   }
 };
 
+export const deleteTrip = (tripId: string): Trip[] => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.TRIPS);
+    const trips: Trip[] = raw ? JSON.parse(raw) : [INITIAL_SAMPLE_TRIP];
+    const remaining = trips.filter((t) => t.id !== tripId);
+    const finalTrips = remaining.length > 0 ? remaining : [INITIAL_SAMPLE_TRIP];
+    saveTrips(finalTrips);
+
+    // Clean up associated itinerary and expenses
+    localStorage.removeItem(`${STORAGE_KEYS.ITINERARY_PREFIX}${tripId}`);
+    localStorage.removeItem(`${STORAGE_KEYS.EXPENSES_PREFIX}${tripId}`);
+
+    const activeStored = localStorage.getItem(STORAGE_KEYS.ACTIVE_TRIP_ID);
+    if (activeStored === tripId) {
+      localStorage.setItem(STORAGE_KEYS.ACTIVE_TRIP_ID, finalTrips[0].id);
+    }
+
+    return finalTrips;
+  } catch (err) {
+    console.error('Failed to delete trip from storage:', err);
+    return loadTrips();
+  }
+};
+
 export const getActiveTripId = (trips: Trip[]): string => {
   const stored = localStorage.getItem(STORAGE_KEYS.ACTIVE_TRIP_ID);
   if (stored && trips.some(t => t.id === stored)) {

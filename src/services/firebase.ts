@@ -248,6 +248,21 @@ export const syncTripToRemote = async (trip: Trip): Promise<boolean> => {
   }
 };
 
+// Delete Trip from remote Firestore
+export const deleteTripFromRemote = async (tripId: string): Promise<boolean> => {
+  if (!isFirebaseReady() || !firestoreDb) return false;
+  try {
+    const tripDocRef = doc(firestoreDb, 'trips', tripId);
+    await deleteDoc(tripDocRef);
+    const itinRef = doc(firestoreDb, 'trips', tripId, 'itinerary_data', 'items');
+    await deleteDoc(itinRef).catch(() => {});
+    return true;
+  } catch (err) {
+    console.error('Failed to delete trip from Firebase:', err);
+    return false;
+  }
+};
+
 // Realtime subscription for all Trips in Firestore
 export const subscribeTrips = (
   onData: (trips: Trip[]) => void,

@@ -3,12 +3,14 @@ import type { Trip, ItineraryItem, Expense } from './types';
 import { 
   loadTrips, 
   saveTrips, 
+  deleteTrip,
   getActiveTripId, 
   setActiveTripId as persistActiveTripId,
   loadItineraryItems, 
   saveItineraryItems, 
   loadExpenses, 
-  saveExpenses 
+  saveExpenses,
+  INITIAL_SAMPLE_TRIP
 } from './services/storage';
 import { 
   isFirebaseReady, 
@@ -16,6 +18,7 @@ import {
   syncExpenseToRemote, 
   deleteExpenseFromRemote, 
   syncTripToRemote,
+  deleteTripFromRemote,
   subscribeTrips,
   subscribeTripItinerary,
   syncItineraryToRemote,
@@ -27,6 +30,7 @@ import {
 import { Navbar } from './components/Navbar';
 import { BottomNav, type ActiveTab } from './components/BottomNav';
 import { TripModal } from './components/TripModal';
+import { DeleteTripModal } from './components/DeleteTripModal';
 import { ItineraryTab } from './components/ItineraryTab';
 import { ExpenseTab } from './components/ExpenseTab';
 import { ScannerTab } from './components/ScannerTab';
@@ -39,6 +43,8 @@ export const App: React.FC = () => {
   const [activeTripId, setActiveTripId] = useState<string>(() => getActiveTripId(trips));
   const [activeTab, setActiveTab] = useState<ActiveTab>('itinerary');
   const [isTripModalOpen, setIsTripModalOpen] = useState(false);
+  const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
+  const [tripToDelete, setTripToDelete] = useState<Trip | null>(null);
   const [isFirebaseConnected, setIsFirebaseConnected] = useState<boolean>(() => isFirebaseReady());
   const [currentUser, setCurrentUser] = useState<AppUser | null>(() => getStoredUser());
 
@@ -140,8 +146,57 @@ export const App: React.FC = () => {
     setPrefilledItineraryItem(null);
   };
 
+  const handleOpenNewTripModal = () => {
+    setEditingTrip(null);
+    setIsTripModalOpen(true);
+  };
+
+  const handleEditTrip = (tripToEdit: Trip) => {
+    setEditingTrip(tripToEdit);
+    setIsTripModalOpen(true);
+  };
+
+  const handlePromptDeleteTrip = (trip: Trip) => {
+    setTripToDelete(trip);
+  };
+
+  const handleConfirmDeleteTrip = async (tripId: string) => {
+    const updatedTrips = deleteTrip(tripId);
+    setTrips(updatedTrips);
+
+    if (isFirebaseConnected) {
+      await deleteTripFromRemote(tripId);
+    }
+
+    if (activeTripId === tripId) {
+      const nextId = updatedTrips[0]?.id || INITIAL_SAMPLE_TRIP.id;
+      setActiveTripId(nextId);
+      persistActiveTripId(nextId);
+      setItineraryItems(loadItineraryItems(nextId));
+      setExpenses(loadExpenses(nextId));
+    }
+
+    setTripToDelete(null);
+    if (editingTrip?.id === tripId) {
+      setIsTripModalOpen(false);
+      setEditingTrip(null);
+    }
+  };
+
   // Create new trip or update active trip
   const handleSaveTrip = (tripData: Omit<Trip, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (editingTrip) {
+      const updatedTrip: Trip = {
+        ...editingTrip,
+        ...tripData,
+        updatedAt: new Date().toISOString(),
+      };
+      handleUpdateActiveTrip(updatedTrip);
+      setEditingTrip(null);
+      setIsTripModalOpen(false);
+      return;
+    }
+
     const newTripId = `trip_${Date.now()}`;
     const newTrip: Trip = {
       ...tripData,
@@ -163,6 +218,7 @@ export const App: React.FC = () => {
     if (isFirebaseConnected) {
       syncTripToRemote(newTrip);
     }
+    setIsTripModalOpen(false);
   };
 
   const handleUpdateActiveTrip = (updatedTrip: Trip) => {
@@ -240,7 +296,9 @@ export const App: React.FC = () => {
           trips={trips}
           activeTrip={activeTrip}
           onSelectTrip={handleSelectTrip}
-          onOpenNewTripModal={() => setIsTripModalOpen(true)}
+          onOpenNewTripModal={handleOpenNewTripModal}
+          onEditTrip={handleEditTrip}
+          onDeleteTrip={handlePromptDeleteTrip}
           isFirebaseConnected={isFirebaseConnected}
           currentUser={currentUser}
           onLogout={handleLogout}
@@ -287,6 +345,11 @@ export const App: React.FC = () => {
           {activeTab === 'settings' && (
             <SettingsTab
               trip={activeTrip}
+              trips={trips}
+              onSelectTrip={handleSelectTrip}
+              onEditTrip={handleEditTrip}
+              onDeleteTrip={handlePromptDeleteTrip}
+              onOpenNewTripModal={handleOpenNewTripModal}
               onUpdateTrip={handleUpdateActiveTrip}
               onReloadAllData={handleReloadAllData}
               isFirebaseConnected={isFirebaseConnected}
@@ -302,11 +365,31 @@ export const App: React.FC = () => {
           expenseCount={expenses.length}
         />
 
-        {/* Create Trip Modal */}
+        {/* Create or Edit Trip Modal */}
         <TripModal
+          key={editingTrip ? editingTrip.id : 'new_trip'}
           isOpen={isTripModalOpen}
-          onClose={() => setIsTripModalOpen(false)}
+          initialTrip={editingTrip}
+          onClose={() => {
+            setIsTripModalOpen(false);
+            setEditingTrip(null);
+          }}
           onSaveTrip={handleSaveTrip}
+          onDeleteTrip={(id) => {
+            const target = trips.find((t) => t.id === id);
+            if (target) {
+              handlePromptDeleteTrip(target);
+            }
+          }}
+        />
+
+        {/* Delete Confirmation Modal */}
+        <DeleteTripModal
+          isOpen={!!tripToDelete}
+          trip={tripToDelete}
+          isOnlyTrip={trips.length <= 1}
+          onClose={() => setTripToDelete(null)}
+          onConfirm={handleConfirmDeleteTrip}
         />
       </div>
     </AuthGate>

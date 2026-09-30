@@ -4,7 +4,9 @@ import {
   ChevronDown, 
   MapPin, 
   FolderSync,
-  LogOut
+  LogOut,
+  Edit3,
+  Trash2
 } from 'lucide-react';
 import type { Trip } from '../types';
 import type { AppUser } from '../services/firebase';
@@ -14,6 +16,8 @@ interface NavbarProps {
   activeTrip: Trip;
   onSelectTrip: (tripId: string) => void;
   onOpenNewTripModal: () => void;
+  onEditTrip?: (trip: Trip) => void;
+  onDeleteTrip?: (trip: Trip) => void;
   isFirebaseConnected: boolean;
   currentUser?: AppUser | null;
   onLogout?: () => void;
@@ -24,6 +28,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   activeTrip,
   onSelectTrip,
   onOpenNewTripModal,
+  onEditTrip,
+  onDeleteTrip,
   isFirebaseConnected,
   currentUser,
   onLogout,
@@ -131,29 +137,60 @@ export const Navbar: React.FC<NavbarProps> = ({
                     {trips.map((trip) => {
                       const isActive = trip.id === activeTrip.id;
                       return (
-                        <button
+                        <div
                           key={trip.id}
-                          onClick={() => {
-                            onSelectTrip(trip.id);
-                            setDropdownOpen(false);
-                          }}
-                          className={`w-full text-left px-3 py-2.5 min-h-[44px] rounded-2xl text-xs transition-all flex items-center justify-between ${
+                          className={`w-full group rounded-2xl text-xs transition-all flex items-center justify-between p-1 ${
                             isActive 
                               ? 'bg-primary/10 text-primary font-bold border border-primary/20 shadow-tactile-sm' 
                               : 'text-ink hover:bg-surface-hover font-medium'
                           }`}
                         >
-                          <div className="truncate pr-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onSelectTrip(trip.id);
+                              setDropdownOpen(false);
+                            }}
+                            className="flex-1 text-left px-2.5 py-1.5 min-h-[40px] truncate"
+                          >
                             <div className="truncate font-semibold">{trip.title}</div>
                             <div className="text-[10px] text-ink-muted flex items-center gap-1 mt-0.5">
-                              <MapPin className="w-2.5 h-2.5" />
+                              <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
                               <span className="truncate">{trip.destination || '未設定地點'}</span>
                             </div>
+                          </button>
+
+                          <div className="flex items-center gap-1 pr-1.5 flex-shrink-0">
+                            {onEditTrip && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onEditTrip(trip);
+                                  setDropdownOpen(false);
+                                }}
+                                title="編輯旅程設定"
+                                className="p-1.5 rounded-xl hover:bg-surface text-ink-muted hover:text-ink transition-colors"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            {onDeleteTrip && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDeleteTrip(trip);
+                                  setDropdownOpen(false);
+                                }}
+                                title="刪除此旅程"
+                                className="p-1.5 rounded-xl hover:bg-terracotta/15 text-ink-muted hover:text-terracotta transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
-                          {isActive && (
-                            <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
-                          )}
-                        </button>
+                        </div>
                       );
                     })}
                   </div>

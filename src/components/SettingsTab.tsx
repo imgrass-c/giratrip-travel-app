@@ -16,7 +16,11 @@ import {
   X,
   AlertCircle,
   FileCode2,
-  FileSpreadsheet
+  FileSpreadsheet,
+  MapPin,
+  Plus,
+  Edit3,
+  Trash2
 } from 'lucide-react';
 import type { Trip } from '../types';
 import { 
@@ -43,6 +47,11 @@ import {
 
 interface SettingsTabProps {
   trip?: Trip;
+  trips?: Trip[];
+  onSelectTrip?: (tripId: string) => void;
+  onEditTrip?: (trip: Trip) => void;
+  onDeleteTrip?: (trip: Trip) => void;
+  onOpenNewTripModal?: () => void;
   onUpdateTrip?: (updatedTrip: Trip) => void;
   onReloadAllData: () => void;
   isFirebaseConnected: boolean;
@@ -50,6 +59,12 @@ interface SettingsTabProps {
 }
 
 export const SettingsTab: React.FC<SettingsTabProps> = ({
+  trip,
+  trips,
+  onSelectTrip,
+  onEditTrip,
+  onDeleteTrip,
+  onOpenNewTripModal,
   onReloadAllData,
   isFirebaseConnected,
   setIsFirebaseConnected,
@@ -444,7 +459,93 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         </form>
       </div>
 
-      {/* CARD 4: Data Management & Full Backup */}
+      {/* CARD 4: Trip Management (旅程列表與管理) */}
+      {trips && trips.length > 0 && (
+        <div className="bg-surface rounded-3xl border border-surface-border p-5 shadow-tactile space-y-3.5 overflow-hidden">
+          <div className="flex items-center justify-between border-b border-surface-border pb-2.5">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-primary" />
+              <h3 className="text-xs font-extrabold text-ink">旅程管理與切換 ({trips.length})</h3>
+            </div>
+            {onOpenNewTripModal && (
+              <button
+                type="button"
+                onClick={onOpenNewTripModal}
+                className="px-2.5 py-1 rounded-xl bg-primary text-white text-[11px] font-bold hover:bg-primary-dark transition-all flex items-center gap-1 shadow-tactile-sm"
+              >
+                <Plus className="w-3 h-3" />
+                <span>新建旅程</span>
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            {trips.map((t) => {
+              const isActive = t.id === trip?.id;
+              return (
+                <div
+                  key={t.id}
+                  className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                    isActive
+                      ? 'bg-primary/10 border-primary/20 shadow-tactile-sm'
+                      : 'bg-canvas border-surface-border'
+                  }`}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-xs text-ink truncate">{t.title}</span>
+                      {isActive && (
+                        <span className="px-2 py-0.5 rounded-lg bg-primary text-white text-[9px] font-bold">
+                          使用中
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-ink-muted flex items-center gap-2 mt-1">
+                      <span>{t.destination || '未設定地點'}</span>
+                      <span>•</span>
+                      <span>{t.startDate} ~ {t.endDate}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {!isActive && onSelectTrip && (
+                      <button
+                        type="button"
+                        onClick={() => onSelectTrip(t.id)}
+                        className="px-2.5 py-1.5 rounded-xl bg-surface border border-surface-border text-ink hover:text-primary text-[11px] font-bold transition-all shadow-tactile-sm"
+                      >
+                        切換
+                      </button>
+                    )}
+                    {onEditTrip && (
+                      <button
+                        type="button"
+                        onClick={() => onEditTrip(t)}
+                        className="p-1.5 rounded-xl bg-surface border border-surface-border text-ink-muted hover:text-ink transition-colors shadow-tactile-sm"
+                        title="編輯此旅程"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    {onDeleteTrip && (
+                      <button
+                        type="button"
+                        onClick={() => onDeleteTrip(t)}
+                        className="p-1.5 rounded-xl bg-surface border border-surface-border text-ink-muted hover:text-terracotta hover:bg-terracotta/10 transition-colors shadow-tactile-sm"
+                        title="刪除此旅程"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* CARD 5: Data Management & Full Backup */}
       <div className="bg-surface rounded-3xl border border-surface-border p-5 shadow-tactile space-y-3.5 overflow-hidden">
         <div className="border-b border-surface-border pb-2.5">
           <h3 className="text-xs font-extrabold text-ink">本機離線資料備份與還原</h3>
