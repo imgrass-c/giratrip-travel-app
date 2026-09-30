@@ -311,37 +311,7 @@ function handleGetItinerary() {
   }
 
   // 讀取成員名單 (若有建立成員工作表)
-  const members = [];
-  const memSheet = ss.getSheetByName(SHEET_NAMES.MEMBERS);
-  if (memSheet) {
-    const memValues = memSheet.getDataRange().getValues();
-    if (memValues.length > 1) {
-      const headers = memValues[0].map(function(h) { return String(h).toLowerCase(); });
-      const nameIdx = headers.findIndex(function(h) { return h.includes('姓名') || h.includes('name'); });
-      const emailIdx = headers.findIndex(function(h) { return h.includes('email') || h.includes('信箱') || h.includes('帳號'); });
-      const roleIdx = headers.findIndex(function(h) { return h.includes('身分') || h.includes('角色') || h.includes('role'); });
-      const payerIdx = headers.findIndex(function(h) { return h.includes('墊') || h.includes('payer'); });
-      const colorIdx = headers.findIndex(function(h) { return h.includes('色') || h.includes('color'); });
-
-      for (let m = 1; m < memValues.length; m++) {
-        const mRow = memValues[m];
-        const mName = String(mRow[nameIdx >= 0 ? nameIdx : 0] || '').trim();
-        if (!mName) continue;
-        const mEmail = emailIdx >= 0 ? String(mRow[emailIdx] || '').trim().toLowerCase() : '';
-        const mRole = roleIdx >= 0 ? String(mRow[roleIdx] || '旅伴') : String(mRow[1] || '旅伴');
-        const isDefaultPayer = payerIdx >= 0 ? String(mRow[payerIdx] || '').includes('是') : false;
-        const avatarColor = colorIdx >= 0 && mRow[colorIdx] ? String(mRow[colorIdx]).trim() : '#15803D';
-        members.push({
-          id: 'mem_' + m,
-          name: mName,
-          email: mEmail,
-          role: (mRole.includes('Admin') || mRole.includes('管理')) ? 'Admin' : 'Member',
-          isDefaultPayer: isDefaultPayer,
-          avatarColor: avatarColor
-        });
-      }
-    }
-  }
+  const members = getMembersFromSheet(ss);
 
   return jsonResponse({
     status: 'success',
@@ -351,6 +321,43 @@ function handleGetItinerary() {
     members: members,
     timestamp: new Date().toISOString()
   });
+}
+
+/**
+ * 讀取成員名單共用輔助函式
+ */
+function getMembersFromSheet(ss) {
+  const members = [];
+  const memSheet = ss.getSheetByName(SHEET_NAMES.MEMBERS);
+  if (!memSheet) return members;
+  const memValues = memSheet.getDataRange().getValues();
+  if (memValues.length <= 1) return members;
+
+  const headers = memValues[0].map(function(h) { return String(h).toLowerCase(); });
+  const nameIdx = headers.findIndex(function(h) { return h.includes('姓名') || h.includes('name'); });
+  const emailIdx = headers.findIndex(function(h) { return h.includes('email') || h.includes('信箱') || h.includes('帳號'); });
+  const roleIdx = headers.findIndex(function(h) { return h.includes('身分') || h.includes('角色') || h.includes('role'); });
+  const payerIdx = headers.findIndex(function(h) { return h.includes('墊') || h.includes('payer'); });
+  const colorIdx = headers.findIndex(function(h) { return h.includes('色') || h.includes('color'); });
+
+  for (let m = 1; m < memValues.length; m++) {
+    const mRow = memValues[m];
+    const mName = String(mRow[nameIdx >= 0 ? nameIdx : 0] || '').trim();
+    if (!mName) continue;
+    const mEmail = emailIdx >= 0 ? String(mRow[emailIdx] || '').trim().toLowerCase() : '';
+    const mRole = roleIdx >= 0 ? String(mRow[roleIdx] || '旅伴') : String(mRow[1] || '旅伴');
+    const isDefaultPayer = payerIdx >= 0 ? String(mRow[payerIdx] || '').includes('是') : false;
+    const avatarColor = colorIdx >= 0 && mRow[colorIdx] ? String(mRow[colorIdx]).trim() : '#15803D';
+    members.push({
+      id: 'mem_' + m,
+      name: mName,
+      email: mEmail,
+      role: (mRole.includes('Admin') || mRole.includes('管理')) ? 'Admin' : 'Member',
+      isDefaultPayer: isDefaultPayer,
+      avatarColor: avatarColor
+    });
+  }
+  return members;
 }
 
 /**
@@ -384,7 +391,9 @@ function handleGetConfig(inputPin) {
     }
   }
 
-  // 驗證管理者身分
+  const members = getMembersFromSheet(ss);
+
+  // 驗證管理者身分 (比對輸入密碼與試算表中的 AdminPin)
   const isAdmin = (inputPin && String(inputPin).trim() === storedAdminPin);
 
   if (isAdmin) {
@@ -393,6 +402,7 @@ function handleGetConfig(inputPin) {
       role: 'admin',
       authorized: true,
       config: {
+        adminPin: storedAdminPin,
         tripTitle: tripTitle,
         baseCurrency: baseCurrency,
         firebase: {
@@ -400,7 +410,8 @@ function handleGetConfig(inputPin) {
           projectId: firebaseProjectId,
           appId: firebaseAppId
         },
-        geminiApiKey: geminiApiKey
+        geminiApiKey: geminiApiKey,
+        members: members
       },
       message: '管理者身分驗證成功，已載入雲端設定'
     });
@@ -413,7 +424,8 @@ function handleGetConfig(inputPin) {
     authorized: false,
     config: {
       tripTitle: tripTitle,
-      baseCurrency: baseCurrency
+      baseCurrency: baseCurrency,
+      members: members.map(function(m) { return { id: m.id, name: m.name, role: m.role, avatarColor: m.avatarColor }; })
     },
     message: '一般旅伴模式：機密金鑰已隱藏遮蔽'
   });
